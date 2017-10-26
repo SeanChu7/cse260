@@ -1,90 +1,65 @@
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Rectangles extends Application {
-	private TextField rect1X1 = new TextField();
-	private TextField rect1width = new TextField();
-	private TextField rect1Y1 = new TextField();
-	private TextField rect1height = new TextField();
-	private TextField rect2X1 = new TextField();
-	private TextField rect2width = new TextField();
-	private TextField rect2Y1 = new TextField();
-	private TextField rect2height = new TextField();
-	private Button create = new Button("Create Rectangles");
-
+	boolean add = true;
+	private static List<Circle> circles = new ArrayList<Circle>();
+	private static Rectangle holder = new Rectangle();
 	@Override
 	public void start(Stage primaryStage) {
-		GridPane gridPane = new GridPane();
-		gridPane.setHgap(5);
-		gridPane.setVgap(5);
-		gridPane.add(new Label("X Coordinate of Rectangle 1"), 0, 0);
-		gridPane.add(rect1X1, 1, 0);
-		gridPane.add(new Label("Y Coordinate of Rectangle 1"), 0, 1);
-		gridPane.add(rect1Y1, 1, 1);
-		gridPane.add(new Label("Width of Rectangle 1"), 0, 2);
-		gridPane.add(rect1width, 1, 2);
-		gridPane.add(new Label("Height of Rectangle 1"), 0, 3);
-		gridPane.add(rect1height, 1, 3);
-		gridPane.add(new Label("X Coordinate of Rectangle 2"), 0, 4);
-		gridPane.add(rect2X1, 1, 4);
-		gridPane.add(new Label("Y Coordinate of Rectangle 2"), 0, 5);
-		gridPane.add(rect2Y1, 1, 5);
-		gridPane.add(new Label("Width of Rectangle 2"), 0, 6);
-		gridPane.add(rect2width, 1, 6);
-		gridPane.add(new Label("Height of Rectangle 2"), 0, 7);
-		gridPane.add(rect2height, 1, 7);
-		gridPane.add(create, 1, 8);
-		create.setOnAction(e -> createRectangles(primaryStage));
-		Scene scene = new Scene(gridPane, 500, 500);
-		primaryStage.setScene(scene);
-		primaryStage.show();
-
-	}
-
-	public void createRectangles(Stage primaryStage) {
-		double rect1X = Double.parseDouble(rect1X1.getText());
-		double rect1Y = Double.parseDouble(rect1Y1.getText());
-		double rect1w = Double.parseDouble(rect1width.getText());
-		double rect1h = Double.parseDouble(rect1height.getText());
-		double rect2X = Double.parseDouble(rect2X1.getText());
-		double rect2Y = Double.parseDouble(rect2Y1.getText());
-		double rect2w = Double.parseDouble(rect2width.getText());
-		double rect2h = Double.parseDouble(rect2height.getText());
-		Rectangle rect1 = new Rectangle(rect1X,rect1Y,rect1w,rect1h);
-		Rectangle rect2 = new Rectangle(rect2X,rect2Y,rect2w,rect2h);
-		rect2.setFill(Color.GREEN);
 		Pane pane = new Pane();
-		pane.getChildren().add(rect1);
-		pane.getChildren().add(rect2);
-		Text t = new Text();
-		t.setX(150);
-		t.setY(50);
-		
-		if (rect1.contains(rect2X,rect2Y) && rect1.contains(rect2X+rect2w,rect2Y+rect2h)) {
-			t.setText("Rectangle 1 contains rectangle 2");
-		}
-		else if (rect2.contains(rect1X,rect1Y) && rect2.contains(rect1X+rect1w,rect1Y+rect1h)) {
-			t.setText("Rectangle 2 contains rectangle 1");
-		}
-		else if (rect1.intersects(rect2X, rect2Y, rect2w, rect2h)) {
-			t.setText("The rectangles intersect");
-		}
-		else {
-			t.setText("The Rectangles do not Overlap");
-		}
-		pane.getChildren().add(t);
+		pane.setOnMouseClicked(e -> {
+			for(int i = 0; i < circles.size(); i++) {
+				if(circles.get(i).contains(e.getX(),e.getY())) {
+					pane.getChildren().remove(circles.get(i));
+					circles.remove(circles.get(i));
+					updateRect(pane);
+					add = false;
+				}
+			}
+			if(add) {
+			Circle circle = new Circle(e.getX(),e.getY(),10);
+			pane.getChildren().add(circle);
+			circles.add(circle);
+			updateRect(pane);
+			}
+			add = true;
+		});
 		Scene scene = new Scene(pane,500,500);
 		primaryStage.setScene(scene);
 		primaryStage.show();
+	}
+
+	public static void updateRect(Pane pane) {
+		Double minX = circles.get(0).getCenterX();
+		Double minY = circles.get(0).getCenterY();
+		Double maxX = circles.get(0).getCenterX();
+		Double maxY = circles.get(0).getCenterY();
+		for (int i = 0; i < circles.size(); i++) {
+			if (circles.get(i).getCenterX() < minX)
+				minX = circles.get(i).getCenterX();
+			if (circles.get(i).getCenterY() < minY)
+				minY = circles.get(i).getCenterY();
+			if (circles.get(i).getCenterX() > maxX)
+				maxX = circles.get(i).getCenterX();
+			if (circles.get(i).getCenterY() > maxY)
+				maxY = circles.get(i).getCenterY();
+		}
+		if (pane.getChildren().contains(holder))
+			pane.getChildren().remove(holder);
+		Rectangle rectangle = new Rectangle(minX-10,minY-10,(maxX+10)-(minX-10),(maxY+10)-(minY-10));
+		rectangle.setStroke(Color.RED);
+		rectangle.setFill(Color.TRANSPARENT);
+		holder = rectangle;
+		pane.getChildren().add(rectangle);
 		
 	}
 	public static void main(String[] args) {
